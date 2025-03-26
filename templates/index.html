@@ -1,0 +1,91 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure File Manager</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-folder-open"></i> Secure File Manager</h1>
+        
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for message in messages %}
+                        <div class="flash-message">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <form action="/upload" method="post" enctype="multipart/form-data" class="upload-form">
+            <div class="file-input-container">
+                <input type="file" name="file" id="file" required>
+                <label for="file" class="file-label">
+                    <i class="fas fa-cloud-upload-alt"></i> Choose a file
+                </label>
+                <span id="file-name">No file selected</span>
+            </div>
+            <button type="submit" class="btn upload-btn">
+                <i class="fas fa-upload"></i> Upload File
+            </button>
+            <div class="file-info">
+                Allowed formats: PDF, TXT, Images (PNG, JPG, GIF), Office (DOCX, XLSX, PPTX), file (ZIP, RAR), Audio/Video (MP3, mp4)
+            </div>
+        </form>
+
+        <h2><i class="fas fa-files"></i> Your Files</h2>
+        {% if files %}
+            <div class="file-list">
+                {% for file in files %}
+                    <div class="file-item">
+                        <div class="file-icon">{{ file.icon }}</div>
+                        <div class="file-details">
+                            <div class="file-name">{{ file.name }}</div>
+                            <div class="file-size">{{ file.size }}</div>
+                        </div>
+                        <div class="file-actions">
+                            <a href="/download/{{ file.name }}" class="btn download-btn" title="Download">
+                                <i class="fas fa-download"></i>
+                            </a>
+                            <a href="/delete/{{ file.name }}" class="btn delete-btn" title="Delete" onclick="return confirm('Are you sure you want to delete {{ file.name }}?')">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                            <button class="btn share-btn" title="Share" onclick="shareLink('{{ file.name }}')">
+                                <i class="fas fa-share-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <i class="fas fa-folder-open"></i>
+                <p>No files uploaded yet</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <script>
+        function shareLink(filename) {
+            const link = `${window.location.origin}/download/${encodeURIComponent(filename)}`;
+            navigator.clipboard.writeText(link).then(() => {
+                alert(`Shareable link copied to clipboard:\n${link}`);
+            }).catch(err => {
+                alert('Failed to copy link. Please try again.');
+                console.error('Error copying link:', err);
+            });
+        }
+
+        // Update file name display when file is selected
+        document.getElementById('file').addEventListener('change', function(e) {
+            const fileName = e.target.files[0] ? e.target.files[0].name : 'No file selected';
+            document.getElementById('file-name').textContent = fileName;
+        });
+    </script>
+</body>
+</html>
